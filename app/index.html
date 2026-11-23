@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tray Rater · 로딩 입력</title>
+<link rel="icon" type="image/png" href="assets/logo-symbol.png">
+<link rel="stylesheet" href="css/ezconnect/styles.css">
+<link rel="stylesheet" href="css/app.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__inner">
+    <a class="brand" href="#" aria-label="Tray Rater 홈">
+      <img src="assets/logo.png" alt="EZCONNECT" class="brand__logo">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__app">Tray Rater</span>
+    </a>
+    <nav class="app-nav" aria-label="입력 단계">
+      <a class="app-nav__tab is-active" href="index.html" aria-current="page"><i data-lucide="table-2"></i>로딩 입력</a>
+      <a class="app-nav__tab" href="geometry.html"><i data-lucide="ruler"></i>형상 입력</a>
+      <a class="app-nav__tab" href="results.html"><i data-lucide="chart-column"></i>계산 결과</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <section class="page-head">
+    <div>
+      <p class="overline">LOADING DATA</p>
+      <h1 class="page-title">로딩 데이터 입력</h1>
+      <p class="lead">로딩별 증기·액체 유량과 물성을 입력하세요. 체적 유량과 계산 케이스는 자동으로 정리됩니다.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn--ghost" id="btn-example" type="button"><i data-lucide="file-text"></i>예제 불러오기</button>
+      <label class="btn btn--secondary" for="file-open"><i data-lucide="folder-open"></i>JSON 불러오기</label>
+      <input type="file" id="file-open" accept=".json,application/json" hidden>
+      <button class="btn btn--primary" id="btn-save" type="button"><i data-lucide="download"></i>JSON 저장</button>
+    </div>
+  </section>
+
+  <!-- 프로젝트 정보 -->
+  <section class="card" aria-labelledby="h-project">
+    <div class="card__head">
+      <h2 class="card__title" id="h-project"><i data-lucide="folder"></i>프로젝트 정보</h2>
+      <span class="card__meta">날짜 <span class="num" id="today"></span></span>
+    </div>
+    <div class="form-grid" id="project-fields"></div>
+  </section>
+
+  <!-- 단위와 부하 범위 -->
+  <section class="card" aria-labelledby="h-units">
+    <div class="card__head">
+      <h2 class="card__title" id="h-units"><i data-lucide="sliders-horizontal"></i>단위와 부하 범위</h2>
+    </div>
+    <div class="settings">
+      <div class="field">
+        <span class="field__label">입력 단위</span>
+        <div class="segmented" role="radiogroup" aria-label="입력 단위" data-key="input_unit">
+          <button type="button" role="radio" data-value="M">Metric (kg/hr · kg/m3 · mm)</button>
+          <button type="button" role="radio" data-value="E">English (lb/hr · lb/ft3 · in)</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field__label">보고서 단위</span>
+        <div class="segmented" role="radiogroup" aria-label="보고서 단위" data-key="output_unit">
+          <button type="button" role="radio" data-value="M">Metric</button>
+          <button type="button" role="radio" data-value="E">English</button>
+        </div>
+      </div>
+      <div class="rate-table" role="group" aria-label="부하 범위">
+        <div></div><div class="rate-table__h">증기</div><div class="rate-table__h">액체</div>
+        <div class="rate-table__l">최대 부하 <span class="unit">%</span></div>
+        <input class="input num" inputmode="decimal" data-rate="max_vapor" aria-label="최대 부하 증기 %">
+        <input class="input num" inputmode="decimal" data-rate="max_liquid" aria-label="최대 부하 액체 %">
+        <div class="rate-table__l">최소 부하 <span class="unit">%</span></div>
+        <input class="input num" inputmode="decimal" data-rate="min_vapor" aria-label="최소 부하 증기 %">
+        <input class="input num" inputmode="decimal" data-rate="min_liquid" aria-label="최소 부하 액체 %">
+      </div>
+      <p class="hint"><i data-lucide="info"></i>모든 로딩에 같이 적용됩니다. 최대 부하가 100%를 넘으면 Turn-up 케이스, 최소 부하가 100% 미만이면 Turn-down 케이스가 추가됩니다.</p>
+    </div>
+  </section>
+
+  <!-- 로딩 표 -->
+  <section class="card card--flush" aria-labelledby="h-loads">
+    <div class="card__head card__head--pad">
+      <h2 class="card__title" id="h-loads"><i data-lucide="table-2"></i>로딩</h2>
+      <div class="card__tools">
+        <span class="card__meta" id="load-count"></span>
+        <button class="btn btn--secondary btn--sm" id="btn-add" type="button"><i data-lucide="plus"></i>로딩 추가</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="load-table" id="load-table">
+        <thead></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- 계산 케이스 -->
+  <section class="card" aria-labelledby="h-cases">
+    <div class="card__head">
+      <h2 class="card__title" id="h-cases"><i data-lucide="list-checks"></i>계산 케이스</h2>
+      <span class="card__meta" id="case-count"></span>
+    </div>
+    <div class="cases" id="cases"></div>
+    <p class="hint"><i data-lucide="info"></i>증기와 액체 체적 유량이 모두 0보다 큰 로딩만 계산됩니다. 케이스 이름은 원본 프로그램과 같은 규칙을 따릅니다.</p>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/static-shim.js"></script>
+<script src="js/loading.js"></script>
+</body>
+</html>

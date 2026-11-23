@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tray Rater · 계산 결과</title>
+<link rel="icon" type="image/png" href="assets/logo-symbol.png">
+<link rel="stylesheet" href="css/ezconnect/styles.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/geometry.css">
+<link rel="stylesheet" href="css/results.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__inner">
+    <a class="brand" href="index.html" aria-label="Tray Rater 홈">
+      <img src="assets/logo.png" alt="EZCONNECT" class="brand__logo">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__app">Tray Rater</span>
+    </a>
+    <nav class="app-nav" aria-label="입력 단계">
+      <a class="app-nav__tab" href="index.html"><i data-lucide="table-2"></i>로딩 입력</a>
+      <a class="app-nav__tab" href="geometry.html"><i data-lucide="ruler"></i>형상 입력</a>
+      <a class="app-nav__tab is-active" href="results.html" aria-current="page"><i data-lucide="chart-column"></i>계산 결과</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <section class="page-head">
+    <div>
+      <p class="overline">RATING RESULTS</p>
+      <h1 class="page-title">계산 결과</h1>
+      <p class="lead">로딩과 형상 입력으로 계산한 트레이 수력 결과입니다. 입력을 바꾸면 이 페이지를 다시 열거나 다시 계산하세요.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn--ghost" id="btn-recalc" type="button"><i data-lucide="refresh-cw"></i>다시 계산</button>
+      <button class="btn btn--secondary" data-export="html" type="button"><i data-lucide="file-text"></i>HTML 보고서</button>
+      <button class="btn btn--secondary" data-export="csv" type="button"><i data-lucide="file-spreadsheet"></i>CSV</button>
+      <button class="btn btn--primary" data-export="xlsx" type="button"><i data-lucide="download"></i>Excel 저장</button>
+    </div>
+  </section>
+
+  <!-- 계산 설정 -->
+  <section class="card toolbar" aria-label="계산 설정">
+    <div class="toolbar__item">
+      <span class="field__label">보고서 단위</span>
+      <div class="segmented" role="radiogroup" aria-label="보고서 단위" id="unit-seg">
+        <button type="button" role="radio" data-value="M">Metric</button>
+        <button type="button" role="radio" data-value="E">English</button>
+      </div>
+    </div>
+    <div class="toolbar__item toolbar__item--grow">
+      <span class="field__label">계산 방식</span>
+      <div class="fix-summary">
+        <span id="fix-badge"></span>
+        <button class="btn btn--ghost btn--sm" id="btn-fixes" type="button" aria-expanded="false" aria-controls="fix-panel"><i data-lucide="sliders-horizontal"></i>수정 옵션</button>
+      </div>
+    </div>
+    <div class="toolbar__item toolbar__meta" id="calc-meta"></div>
+    <div class="fix-panel" id="fix-panel" hidden>
+      <p class="hint"><i data-lucide="info"></i>원본 엑셀의 오류로 판단한 항목입니다. 켜지 않으면 원본과 같은 결과를 계산합니다.</p>
+      <div class="fix-list" id="fix-list"></div>
+    </div>
+  </section>
+
+  <div id="content"></div>
+</main>
+
+<div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/static-shim.js"></script>
+<script src="js/store.js"></script>
+<script src="js/results.js"></script>
+</body>
+</html>

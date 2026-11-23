@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Tray Rater · 외부 테스트</title>
+<link rel="icon" type="image/png" href="app/assets/logo-symbol.png">
+<link rel="stylesheet" href="app/css/ezconnect/styles.css">
+<link rel="stylesheet" href="gate.css">
+</head>
+<body>
+  <main class="gate" id="gate">
+    <section class="gate__card" aria-labelledby="gate-title">
+      <img src="app/assets/logo.png" alt="EZCONNECT" class="gate__logo">
+      <p class="overline">TRAY RATER · TEST</p>
+      <h1 id="gate-title" class="gate__title">외부 테스트 버전</h1>
+      <p class="gate__lead">전달받은 비밀번호를 입력하세요. 계산 엔진과 데이터는 비밀번호로 암호화되어 있습니다.</p>
+      <form id="gate-form" autocomplete="on" novalidate>
+        <label class="field__label" for="pw">비밀번호</label>
+        <div class="pw-wrap">
+          <input class="input" id="pw" name="password" type="password" autocomplete="current-password" required
+                 aria-describedby="pw-msg">
+          <button class="icon-btn" type="button" id="pw-toggle" aria-label="비밀번호 보기" aria-pressed="false">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <p class="msg" id="pw-msg" role="alert"></p>
+        <button class="btn btn--primary btn--block" type="submit" id="gate-submit">입장하기</button>
+      </form>
+      <ol class="steps" id="steps" hidden aria-live="polite">
+        <li data-step="key">비밀번호 확인</li>
+        <li data-step="engine">계산 엔진 내려받기 <span class="steps__note">처음 한 번 수 초 걸립니다</span></li>
+        <li data-step="modules">계산 모듈 준비</li>
+      </ol>
+      <p class="gate__foot">브라우저 안에서 계산하며 입력값은 이 브라우저에만 저장됩니다.</p>
+    </section>
+  </main>
+
+  <div class="shell" id="shell" hidden>
+    <iframe id="app" title="Tray Rater" src="about:blank"></iframe>
+    <button class="lock-pill" type="button" id="lock">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      테스트 버전 · 잠그기
+    </button>
+  </div>
+
+  <script src="gate.js"></script>
+</body>
+</html>

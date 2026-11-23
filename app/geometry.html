@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tray Rater · 형상 입력</title>
+<link rel="icon" type="image/png" href="assets/logo-symbol.png">
+<link rel="stylesheet" href="css/ezconnect/styles.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/geometry.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__inner">
+    <a class="brand" href="index.html" aria-label="Tray Rater 홈">
+      <img src="assets/logo.png" alt="EZCONNECT" class="brand__logo">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__app">Tray Rater</span>
+    </a>
+    <nav class="app-nav" aria-label="입력 단계">
+      <a class="app-nav__tab" href="index.html"><i data-lucide="table-2"></i>로딩 입력</a>
+      <a class="app-nav__tab is-active" href="geometry.html" aria-current="page"><i data-lucide="ruler"></i>형상 입력</a>
+      <a class="app-nav__tab" href="results.html"><i data-lucide="chart-column"></i>계산 결과</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <section class="page-head">
+    <div>
+      <p class="overline">TRAY GEOMETRY</p>
+      <h1 class="page-title">형상 입력</h1>
+      <p class="lead">트레이 종류와 다운커머·위어 치수를 입력하세요. 회색 칸은 입력값으로 바로 계산됩니다.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn--ghost" id="btn-example" type="button"><i data-lucide="file-text"></i>예제 불러오기</button>
+      <label class="btn btn--secondary" for="file-open"><i data-lucide="folder-open"></i>JSON 불러오기</label>
+      <input type="file" id="file-open" accept=".json,application/json" hidden>
+      <button class="btn btn--primary" id="btn-save" type="button"><i data-lucide="download"></i>JSON 저장</button>
+    </div>
+  </section>
+
+  <div class="geo-layout">
+    <!-- 왼쪽: 트레이 정보 -->
+    <div class="geo-side">
+      <section class="card" aria-labelledby="h-tray">
+        <div class="card__head"><h2 class="card__title" id="h-tray"><i data-lucide="layers"></i>트레이 정보</h2></div>
+        <div class="stack" id="tray-fields"></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-aa">
+        <div class="card__head"><h2 class="card__title" id="h-aa"><i data-lucide="grid-3x3"></i>활성 영역</h2></div>
+        <div class="stack" id="aa-fields"></div>
+        <dl class="calc-list" id="aa-calc"></dl>
+      </section>
+
+      <section class="card" aria-labelledby="h-opt">
+        <div class="card__head"><h2 class="card__title" id="h-opt"><i data-lucide="settings-2"></i>옵션</h2></div>
+        <div class="stack" id="opt-fields"></div>
+      </section>
+
+      <section class="card status-card" aria-labelledby="h-status" aria-live="polite">
+        <div class="card__head"><h2 class="card__title" id="h-status"><i data-lucide="activity"></i>상태</h2></div>
+        <div id="status"></div>
+      </section>
+    </div>
+
+    <!-- 오른쪽: 다운커머·위어 / 패널 / 스케치 -->
+    <div class="geo-main">
+      <section class="card card--flush" aria-labelledby="h-dc">
+        <div class="card__head card__head--pad">
+          <h2 class="card__title" id="h-dc"><i data-lucide="ruler"></i>다운커머와 위어</h2>
+          <span class="card__meta" id="pass-meta"></span>
+        </div>
+        <div class="table-wrap">
+          <table class="geo-table" id="dc-table"></table>
+        </div>
+      </section>
+
+      <div class="geo-bottom">
+        <section class="card card--flush" aria-labelledby="h-panels">
+          <div class="card__head card__head--pad">
+            <h2 class="card__title" id="h-panels"><i data-lucide="layout-panel-left"></i>패널</h2>
+          </div>
+          <div class="table-wrap">
+            <table class="geo-table" id="panel-table"></table>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="h-sketch">
+          <div class="card__head">
+            <h2 class="card__title" id="h-sketch"><i data-lucide="circle-dashed"></i>배치 스케치</h2>
+          </div>
+          <div id="sketch" class="sketch"></div>
+          <p class="hint"><i data-lucide="info"></i>위아래 트레이의 다운커머를 겹쳐 표시합니다. 치수 비율은 실제와 같습니다.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/static-shim.js"></script>
+<script src="js/store.js"></script>
+<script src="js/geometry.js"></script>
+</body>
+</html>

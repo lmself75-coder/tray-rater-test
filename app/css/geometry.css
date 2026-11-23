@@ -1,0 +1,84 @@
+/* 형상 입력 페이지 */
+.geo-layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: var(--space-lg); align-items: start; }
+.geo-side { display: flex; flex-direction: column; gap: var(--space-lg); position: sticky; top: 88px; }
+.geo-main { display: flex; flex-direction: column; gap: var(--space-lg); min-width: 0; }
+.geo-bottom { display: flex; flex-direction: column; gap: var(--space-lg); }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.divider { height: 1px; background: var(--neutral-200); margin: 4px 0; }
+
+a.app-nav__tab { text-decoration: none; }
+a.app-nav__tab:hover { text-decoration: none; }
+
+/* 왼쪽 폼: 라벨 위, 입력 + 단위 */
+.field--row { gap: 6px; }
+.field__control { display: flex; align-items: center; gap: 8px; }
+.field__control > .input, .field__control > .select-wrap { flex: 1; }
+.field__control .input { height: var(--control-h-sm); font-size: 14px; }
+.field__control .unit { min-width: 24px; }
+.field__help { font: 400 12px/1.4 var(--font-ko); color: var(--fg-muted); }
+.select-wrap { position: relative; }
+.select-wrap .select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; height: var(--control-h-sm); font-size: 14px; }
+.select-wrap svg.lucide { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--neutral-600); pointer-events: none; }
+.input:disabled { background: var(--neutral-50); color: var(--neutral-400); cursor: not-allowed; border-color: var(--neutral-200); }
+
+/* 스위치 */
+.switch-row { display: flex; align-items: flex-start; gap: 12px; }
+.switch-row__label { display: flex; flex-direction: column; font: 600 14px/1.4 var(--font-ko); color: var(--neutral-800); cursor: pointer; }
+.switch-row__hint { font: 400 12px/1.4 var(--font-ko); color: var(--fg-muted); }
+.switch { position: relative; display: inline-flex; flex: none; width: 40px; height: 24px; margin-top: 1px; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.switch__track { width: 40px; height: 24px; border-radius: var(--radius-pill); background: var(--neutral-200); transition: background var(--duration-fast); position: relative; }
+.switch__track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 40, 63, .2); transition: transform var(--duration-fast); }
+.switch input:checked + .switch__track { background: var(--secondary-teal); }
+.switch input:checked + .switch__track::after { transform: translateX(16px); }
+.switch input:focus-visible + .switch__track { box-shadow: var(--focus-ring); }
+
+/* 계산 요약 */
+.calc-list { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; margin: var(--space-md) 0 0; padding: var(--space-md) 0 0; border-top: var(--border-default); }
+.calc-list dt { font: 400 14px/1.4 var(--font-ko); color: var(--fg-muted); }
+.calc-list dd { margin: 0; display: flex; gap: 6px; align-items: baseline; justify-content: flex-end; font: 600 15px/1.4 var(--font-en); color: var(--primary-500); }
+.calc-list dd .unit { min-width: 44px; }
+.status-text { margin: 8px 0 0; font: var(--text-body-sm); color: var(--fg-muted); }
+.status-card .issues { font-size: 13px; }
+
+/* 다운커머·위어 표 */
+.geo-table { border-collapse: separate; border-spacing: 0; width: 100%; }
+.geo-table th, .geo-table td { padding: 4px 6px; vertical-align: middle; }
+.geo-table thead th { padding: 10px 6px; border-bottom: var(--border-default); font: 700 14px/1 var(--font-en); color: var(--primary-500); text-align: center; }
+.geo-table .rowhead { text-align: left; padding-left: var(--space-lg); white-space: nowrap; min-width: 190px; }
+.geo-table .rowhead__label { display: block; font: 600 14px/1.3 var(--font-en); color: var(--neutral-800); }
+.geo-table .rowhead__sub { display: block; font: 400 12px/1.3 var(--font-ko); color: var(--fg-muted); }
+.geo-table tr.group th { padding: 12px 6px 6px var(--space-lg); background: var(--neutral-50); text-align: left;
+  border-top: var(--border-default); border-bottom: var(--border-default); }
+.geo-table tr.group .group__title { display: inline-flex; align-items: center; gap: 6px; font: var(--text-label); letter-spacing: var(--ls-label); color: var(--primary-500); font-size: 13px; }
+.geo-table tr.group svg.lucide { width: 16px; height: 16px; color: var(--secondary-teal); }
+.geo-table td .input { height: var(--control-h-sm); font-size: 14px; padding: 0 10px; min-width: 96px; }
+.geo-table .unitcol { font: 400 13px/1 var(--font-en); color: var(--fg-muted); padding-right: var(--space-lg); width: 48px; text-align: left; }
+.geo-table thead .unitcol { font: 600 12px/1 var(--font-ko); color: var(--fg-muted); }
+.geo-table .colgroup--offcenter { color: var(--secondary-teal-700); }
+.calc-box { display: flex; align-items: center; justify-content: flex-end; height: var(--control-h-sm); padding: 0 10px; border-radius: var(--radius-md);
+  background: var(--neutral-50); border: 1px dashed var(--neutral-200); font: 400 14px/1 var(--font-en); color: var(--neutral-800); min-width: 96px; }
+.geo-table td.blank { background: transparent; }
+
+/* 스케치 */
+.sketch { display: flex; align-items: center; gap: var(--space-xl); flex-wrap: wrap; }
+.sketch svg { width: 300px; max-width: 100%; height: auto; display: block; }
+.sk-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font: var(--text-body-sm); color: var(--neutral-800); }
+.sk-legend li { display: flex; align-items: center; gap: 10px; }
+.sk-swatch { width: 18px; height: 12px; border-radius: 3px; background: var(--primary-50); border: 1px solid var(--primary-300); }
+.sk-swatch--off { background: var(--secondary-teal-50); border-color: var(--secondary-teal); }
+.sk-swatch--deck { background: var(--neutral-0); border-color: var(--primary-500); }
+.sk-deck { fill: var(--neutral-0); }
+.sk-shell { fill: none; stroke: var(--primary-500); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.sk-dc { fill: var(--primary-50); stroke: var(--primary-300); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.sk-dc--off { fill: var(--secondary-teal-50); stroke: var(--secondary-teal); }
+.sk-dim { stroke: var(--neutral-400); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.sk-text { fill: var(--neutral-600); font-family: var(--font-en); }
+.sk-label { fill: var(--primary-500); font-family: var(--font-en); font-weight: 600; }
+
+@media (max-width: 1199px) {
+  .geo-layout { grid-template-columns: 1fr; }
+  .geo-side { position: static; }
+  .geo-bottom { grid-template-columns: 1fr; }
+}

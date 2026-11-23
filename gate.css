@@ -1,0 +1,53 @@
+/* 입장 화면 + 앱 틀 (EZCONNECT 토큰 사용) */
+html, body { height: 100%; }
+body { background: var(--surface-section); }
+.gate { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: var(--space-lg) var(--page-margin); }
+.gate__card { width: 100%; max-width: 420px; background: var(--neutral-0); border: var(--border-default); border-radius: var(--radius-lg);
+  padding: var(--space-xl); }
+.gate__logo { height: 30px; width: auto; display: block; margin-bottom: var(--space-lg); }
+.overline { margin: 0 0 6px; font: var(--text-label); letter-spacing: var(--ls-label); color: var(--secondary-teal); }
+.gate__title { font: var(--text-h2); letter-spacing: var(--ls-h2); }
+.gate__lead { margin: 8px 0 var(--space-lg); font: var(--text-body-sm); color: var(--fg-muted); }
+.gate__foot { margin: var(--space-lg) 0 0; font: var(--text-caption); color: var(--fg-muted); }
+.field__label { display: block; margin-bottom: 8px; font: 600 14px/1.4 var(--font-ko); color: var(--neutral-800); }
+.pw-wrap { position: relative; }
+.input { width: 100%; height: var(--control-h-md); padding: 0 44px 0 14px; border-radius: var(--radius-md); border: 1px solid var(--neutral-200);
+  background: var(--neutral-0); color: var(--neutral-900); font: 400 15px/1 var(--font-ko); outline: none;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast); }
+.input:hover { border-color: var(--neutral-400); }
+.input:focus { border: 1.5px solid var(--secondary-teal); box-shadow: var(--focus-ring); }
+.input.is-error { border: 1.5px solid var(--error-500); }
+.input.is-error:focus { box-shadow: var(--focus-ring-error); }
+.icon-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: inline-flex;
+  align-items: center; justify-content: center; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--neutral-600); cursor: pointer; }
+.icon-btn:hover { background: var(--primary-50); color: var(--primary-500); }
+.icon-btn:focus-visible { box-shadow: var(--focus-ring); outline: none; }
+.msg { min-height: 20px; margin: 6px 0 var(--space-md); font: 400 13px/1.5 var(--font-ko); color: var(--error-500); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--control-h-md); padding: 0 20px;
+  border-radius: var(--radius-md); font: 600 15px/1 var(--font-ko); cursor: pointer; border: none;
+  transition: background var(--duration-fast), box-shadow var(--duration-fast); }
+.btn:focus-visible { box-shadow: var(--focus-ring); outline: none; }
+.btn--primary { background: var(--primary-500); color: #fff; }
+.btn--primary:hover { background: var(--primary-hover); }
+.btn--primary:active { background: var(--primary-700); }
+.btn--primary:disabled { background: var(--neutral-200); color: var(--neutral-400); cursor: not-allowed; }
+.btn--block { width: 100%; }
+
+.steps { list-style: none; margin: var(--space-lg) 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.steps li { position: relative; padding-left: 28px; font: 400 14px/1.5 var(--font-ko); color: var(--neutral-400); }
+.steps li::before { content: ''; position: absolute; left: 4px; top: 5px; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--neutral-200); }
+.steps li.is-active { color: var(--primary-500); font-weight: 600; }
+.steps li.is-active::before { border-color: var(--secondary-teal); border-top-color: transparent; animation: spin 0.9s linear infinite; }
+.steps li.is-done { color: var(--neutral-800); }
+.steps li.is-done::before { background: var(--secondary-teal); border-color: var(--secondary-teal); }
+.steps__note { display: block; font: 400 12px/1.4 var(--font-ko); color: var(--fg-muted); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .steps li.is-active::before { animation: none; border-top-color: var(--secondary-teal); } }
+
+.shell, .shell iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+.shell[hidden] { display: none; }
+.lock-pill { position: fixed; left: 16px; bottom: 16px; z-index: 10; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
+  border-radius: var(--radius-pill); border: var(--border-default); background: var(--neutral-0); color: var(--primary-500);
+  font: 600 12px/1 var(--font-ko); cursor: pointer; box-shadow: var(--shadow-hover); }
+.lock-pill:hover { background: var(--primary-50); }
+.lock-pill:focus-visible { box-shadow: var(--focus-ring); outline: none; }
