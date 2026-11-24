@@ -364,7 +364,7 @@
     TrayStore.setDesign(next);
     design = next;
     toast(`${c.n_pass}-pass · ${mm(c.column_id)} mm 설계를 적용했습니다`);
-    setTimeout(() => { location.href = page; }, 450);
+    setTimeout(() => { location.href = page + location.search; }, 450);   // 정적 사이트의 빌드 번호 유지
   }
 
   // ---------------------------------------------------------------- 시작

@@ -10,7 +10,17 @@
     location.replace('../index.html');
     return;
   }
-  document.documentElement.classList.add('is-static');     // 서버 전용 메뉴(자동 설계) 숨김
+  document.documentElement.classList.add('is-static');
+  // 빌드 번호(?v=...)를 다음 페이지로 넘긴다: 스크립트가 만든 링크도 브라우저 캐시의 옛 페이지 대신 새 페이지를 연다
+  const ver = new URLSearchParams(location.search).get('v');
+  if (ver) {
+    document.addEventListener('click', e => {
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      const href = a.getAttribute('href');
+      if (/^[\w.-]+\.html(#.*)?$/.test(href)) a.setAttribute('href', href.replace(/(\.html)/, `$1?v=${ver}`));
+    }, true);
+  }
   const original = window.fetch.bind(window);
   const intercept = url => /\/api\/|original_design\.json/.test(url);
 
