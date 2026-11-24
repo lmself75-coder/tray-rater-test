@@ -10,6 +10,7 @@
     location.replace('../index.html');
     return;
   }
+  document.documentElement.classList.add('is-static');     // 서버 전용 메뉴(자동 설계) 숨김
   const original = window.fetch.bind(window);
   const intercept = url => /\/api\/|original_design\.json/.test(url);
 
