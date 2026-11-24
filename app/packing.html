@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tray Rater · 패킹</title>
+<link rel="icon" type="image/png" href="assets/logo-symbol.png?v=20261124143937">
+<link rel="stylesheet" href="css/ezconnect/styles.css?v=20261124143937">
+<link rel="stylesheet" href="css/app.css?v=20261124143937">
+<link rel="stylesheet" href="css/results.css?v=20261124143937">
+<link rel="stylesheet" href="css/packing.css?v=20261124143937">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__inner">
+    <a class="brand" href="index.html?v=20261124143937" aria-label="Tray Rater 홈">
+      <img src="assets/logo.png?v=20261124143937" alt="EZCONNECT" class="brand__logo">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__app">Tray Rater</span>
+    </a>
+    <nav class="app-nav" aria-label="입력 단계">
+      <a class="app-nav__tab" href="index.html?v=20261124143937"><i data-lucide="table-2"></i>로딩 입력</a>
+      <a class="app-nav__tab" href="design.html?v=20261124143937"><i data-lucide="wand-sparkles"></i>자동 설계</a>
+      <a class="app-nav__tab" href="geometry.html?v=20261124143937"><i data-lucide="ruler"></i>형상 입력</a>
+      <a class="app-nav__tab" href="results.html?v=20261124143937"><i data-lucide="chart-column"></i>계산 결과</a>
+      <a class="app-nav__tab app-nav__tab--sep is-active" href="packing.html?v=20261124143937" aria-current="page"><i data-lucide="layers"></i>패킹</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <section class="page-head">
+    <div>
+      <p class="overline">PACKING RATING</p>
+      <h1 class="page-title">패킹 수력 계산</h1>
+      <p class="lead">정형·랜덤 패킹 베드의 capacity(% flood), system limit, liquid holdup, 압력강하를 계산합니다. GT-Rater Packing(V3-04)과 같은 계산입니다.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn--ghost" id="btn-example" type="button"><i data-lucide="file-input"></i>예제 불러오기</button>
+      <label class="btn btn--ghost" for="file-open"><i data-lucide="folder-open"></i>JSON 열기</label>
+      <input id="file-open" type="file" accept=".json,application/json" hidden>
+      <button class="btn btn--ghost" id="btn-save" type="button"><i data-lucide="save"></i>JSON 저장</button>
+      <button class="btn btn--primary" id="btn-run" type="button"><i data-lucide="play"></i>계산</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="set-title">
+    <div class="card__head">
+      <h2 class="card__title" id="set-title"><i data-lucide="sliders-horizontal"></i>계산 설정</h2>
+    </div>
+    <div class="pk-settings">
+      <div class="field">
+        <span class="field__label" id="in-unit-label">입력 단위</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="in-unit-label" id="in-unit">
+          <button type="button" role="radio" data-value="1">Metric</button>
+          <button type="button" role="radio" data-value="2">English</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field__label" id="out-unit-label">보고서 단위</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="out-unit-label" id="out-unit">
+          <button type="button" role="radio" data-value="M">Metric</button>
+          <button type="button" role="radio" data-value="E">English</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="cap-model">정형 패킹 flood 모델</label>
+        <select class="input" id="cap-model"></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="cap-model-rnd">랜덤 패킹 모델</label>
+        <select class="input" id="cap-model-rnd"></select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="max-rate">Max rate <span class="unit">%</span></label>
+        <input class="input num" id="max-rate" type="number" step="1" inputmode="decimal" placeholder="100">
+      </div>
+      <div class="field">
+        <label class="field__label" for="min-rate">Min rate <span class="unit">%</span></label>
+        <input class="input num" id="min-rate" type="number" step="1" inputmode="decimal" placeholder="100">
+      </div>
+    </div>
+    <p class="hint"><i data-lucide="info"></i>Max rate가 100 %를 넘으면 Max 케이스, Min rate가 100 % 미만이면 Min 케이스를 로딩마다 추가합니다.</p>
+    <div class="pk-fixes">
+      <div class="pk-fixes__head">
+        <span class="field__label">원본 수정 옵션</span>
+        <div class="pk-fixes__presets">
+          <button class="btn btn--ghost btn--sm" type="button" data-preset="recommended">추천 (P1·P2·P3·P5)</button>
+          <button class="btn btn--ghost btn--sm" type="button" data-preset="none">원본 그대로</button>
+        </div>
+      </div>
+      <div class="fix-list" id="fix-list"></div>
+    </div>
+  </section>
+
+  <section class="card card--flush" aria-labelledby="load-title">
+    <div class="card__head card__head--pad">
+      <h2 class="card__title" id="load-title"><i data-lucide="table-2"></i>로딩</h2>
+      <div class="card__tools">
+        <span class="card__meta" id="load-meta"></span>
+        <button class="btn btn--ghost btn--sm" id="btn-add" type="button"><i data-lucide="plus"></i>로딩 추가</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="load-table pk-table" id="load-table"></table>
+    </div>
+  </section>
+
+  <section class="pk-results" id="results" aria-live="polite"></section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="js/static-shim.js?v=20261124143937"></script>
+<script src="js/packing.js?v=20261124143937"></script>
+</body>
+</html>
