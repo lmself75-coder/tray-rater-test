@@ -91,7 +91,7 @@ handle('GET', '/api/catalog', '')      # 모듈 미리 불러오기
   function openApp() {
     $('#gate').hidden = true;
     $('#shell').hidden = false;
-    $('#app').src = 'app/index.html?v=20261124143937';
+    $('#app').src = 'app/index.html?v=20261125145025';
   }
 
   async function unlockWith(key) {

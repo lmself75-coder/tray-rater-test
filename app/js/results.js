@@ -12,7 +12,7 @@
 
   const FIX_KEY = 'trayRater.fixes.v1';
   const FLOOD_LIMIT = 85;                // 원본 ValidateOutput: Jet / DC flood > 0.85 경고
-  const SECTION = { 10: '증기', 15: '액체', 21: '트레이', 25: '수력 결과', 42: '용량 지표', 48: '계수' };
+  const SECTION = { 10: '증기', 15: '액체', 21: '트레이', 25: '수력 결과', 42: '용량 지표', 48: '계수', 49: '계수', 101: 'Bubble cap (FRI)' };
   const KEY_ROWS = new Set([25, 26, 29, 33, 34, 38]);
   const BACKUP_LIMIT = 50;               // Downcomer backup % 설계 한계 (사용자 기준)
   const OVER = { 25: FLOOD_LIMIT, 26: FLOOD_LIMIT, 34: BACKUP_LIMIT, 40: 90 };
@@ -307,9 +307,10 @@
   function renderReportCard() {
     const head = el('tr', {}, el('th', { text: '항목' }), el('th', { text: '단위' }), result.case_labels.map(c => el('th', { text: c })));
     const rows = [];
+    let lastSec = null;
     for (const r of result.main) {
       if (r.row === 6) continue;                       // 케이스 이름은 머리글
-      if (SECTION[r.row]) rows.push(el('tr', { class: 'sec' }, el('td', { colspan: result.case_labels.length + 2, text: SECTION[r.row] })));
+      if (SECTION[r.row] && SECTION[r.row] !== lastSec && (lastSec = SECTION[r.row])) rows.push(el('tr', { class: 'sec' }, el('td', { colspan: result.case_labels.length + 2, text: SECTION[r.row] })));
       rows.push(el('tr', { class: KEY_ROWS.has(r.row) ? 'key' : '' },
         el('td', { class: 'lab', text: r.label }), el('td', { class: 'u', text: r.unit }),
         r.values.map(v => {

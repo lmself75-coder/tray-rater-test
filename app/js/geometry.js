@@ -41,7 +41,17 @@
   let design = TrayStore.getDesign() || {};
   design.geometry = Object.assign({}, DEFAULT_GEOMETRY, design.geometry || {});
   if (!design.geometry.column_id && !TrayStore.getDesign()) design.geometry.column_id = null;
-  let catalog = { tray_types: ['VALVE', 'SIEVE', 'GT-PURGE™', 'GT-OPTIM™'], valves: [], materials: [] };
+  let catalog = { tray_types: ['VALVE', 'SIEVE', 'GT-PURGE™', 'GT-OPTIM™', 'BUBBLE CAP'], valves: [], materials: [],
+                  caps: [{ id: 'BC-3"', label: '3" bubble cap', od_in: 3 }, { id: 'BC-4"', label: '4" bubble cap (FRI standard)', od_in: 4 },
+                         { id: 'BC-6"', label: '6" bubble cap', od_in: 6 }] };
+  const isBubble = () => String(G().tray_type || '').toUpperCase() === 'BUBBLE CAP';
+  const isCap = v => catalog.caps.some(c => c.id === v);
+  // 트레이 종류를 바꾸면 밸브 종류를 맞는 목록의 값으로 바꾼다 (캡 <-> 밸브)
+  function onTrayType(v) {
+    const bubble = String(v).toUpperCase() === 'BUBBLE CAP';
+    if (bubble && !isCap(G().valve1_type)) G().valve1_type = 'BC-4"';
+    if (!bubble && isCap(G().valve1_type)) G().valve1_type = 'mfix6';
+  }
   let calc = null;            // 마지막 API 결과
   let serverOk = true;
   const G = () => design.geometry;
@@ -92,13 +102,14 @@
     });
     return inp;
   }
-  function selectInput(field, options, label) {
+  // options: 값 목록 또는 [값, 표시 이름] 목록
+  function selectInput(field, options, label, onChange) {
     const s = el('select', { class: 'input select', 'aria-label': label, 'data-field': field });
     const cur = G()[field];
-    const opts = [...options];
-    if (cur && !opts.some(o => String(o).toLowerCase() === String(cur).toLowerCase())) opts.unshift(cur);
-    for (const o of opts) s.append(el('option', { value: o, text: o, selected: String(o).toLowerCase() === String(cur ?? '').toLowerCase() }));
-    s.addEventListener('change', () => { G()[field] = s.value; changed(); renderAll(); });
+    const opts = options.map(o => (Array.isArray(o) ? o : [o, o]));
+    if (cur && !opts.some(([v]) => String(v).toLowerCase() === String(cur).toLowerCase())) opts.unshift([cur, cur]);
+    for (const [v, t] of opts) s.append(el('option', { value: v, text: t, selected: String(v).toLowerCase() === String(cur ?? '').toLowerCase() }));
+    s.addEventListener('change', () => { G()[field] = s.value; if (onChange) onChange(s.value); changed(); renderAll(); });
     return el('div', { class: 'select-wrap' }, s, icon('chevron-down'));
   }
   function switchInput(field, label, { on = 'YES', off = 'NO', hint } = {}) {
@@ -134,17 +145,27 @@
   // ---------------------------------------------------------------- 왼쪽 패널
   function renderLeft() {
     const sieve = String(G().tray_type || '').toUpperCase() === 'SIEVE';
+    const bubble = isBubble();
     fill($('#tray-fields'),
-      field('트레이 종류', selectInput('tray_type', catalog.tray_types, '트레이 종류')),
+      field('트레이 종류', selectInput('tray_type', catalog.tray_types, '트레이 종류', onTrayType)),
       field('Tower 지름', numInput('column_id', { label: 'Tower 지름', placeholder: '0' }), LEN()),
       field('패스 수', segmented('n_pass', [[1, '1'], [2, '2'], [3, '3'], [4, '4']], '패스 수')),
       field('형상 단위', segmented('geometry_unit', [['M', 'mm'], ['E', 'inch']], '형상 단위', 'design')),
     );
+    const capOd = (catalog.caps.find(c => c.id === G().valve1_type) || {}).od_in || 4;
+    const skirtDefault = unitE() ? (0.375 * capOd / 4).toFixed(3) : (9.525 * capOd / 4).toFixed(1);
     fill($('#aa-fields'),
-      sieve
-        ? field('홀 지름', numInput('sieve_hole_override', { label: '홀 지름', placeholder: '13' }), 'mm', '비우면 13 mm')
-        : field('밸브 종류', selectInput('valve1_type', catalog.valves, '밸브 종류')),
-      field('개구율', numInput('open_area', { scale: 100, label: '개구율 %', placeholder: '0' }), '%', '활성면적 대비 개구 면적 (5 ~ 18%)'),
+      bubble
+        ? [field('캡 크기', selectInput('valve1_type', catalog.caps.map(c => [c.id, c.label]), '캡 크기'), null,
+                 'FRI 표준 캡 형상. 3"·6" 는 4" 표준을 비례 확대·축소'),
+           field('Skirt clearance', numInput('bc_skirt_clearance', { label: 'Skirt clearance', placeholder: skirtDefault }), LEN(),
+                 `캡 하단 ~ 트레이 바닥 (slot 높이). 비우면 ${skirtDefault} ${LEN()}`),
+           field('캡 수', numInput('bc_cap_count', { label: '캡 수', placeholder: '자동' }), 'caps',
+                 '비우면 활성면적으로 추정 (삼각 배열, 배치 효율 85%)')]
+        : sieve
+          ? field('홀 지름', numInput('sieve_hole_override', { label: '홀 지름', placeholder: '13' }), 'mm', '비우면 13 mm')
+          : field('밸브 종류', selectInput('valve1_type', catalog.valves, '밸브 종류')),
+      bubble ? null : field('개구율', numInput('open_area', { scale: 100, label: '개구율 %', placeholder: '0' }), '%', '활성면적 대비 개구 면적 (5 ~ 18%)'),
       field('데크 두께', numInput('deck_thickness', { label: '데크 두께' }), 'mm'),
       field('재질', selectInput('metallurgy', catalog.materials, '재질')),
     );
@@ -152,15 +173,15 @@
     fill($('#opt-fields'),
       switchInput('inlet_sump', 'Inlet sump / weir', { hint: 'Sump 깊이·inlet weir 높이 입력 사용' }),
       switchInput('mcsd', 'GT-Optim™ MCSD', { hint: '측면 DC 하부 형상을 MCSD 로 계산' }),
-      switchInput('relief_hole', 'Relief hole', { hint: '밸브 슬롯 면적에 relief hole 포함' }),
+      bubble ? null : switchInput('relief_hole', 'Relief hole', { hint: '밸브 슬롯 면적에 relief hole 포함' }),
       switchInput('envelope', 'Envelope', { on: 'yes', off: 'NO', hint: '1-pass 측면 DC 면적을 envelope 기준으로' }),
       String(G().envelope || '').toLowerCase() === 'yes'
         ? field('Envelope 폭', numInput('envelope_width', { label: 'Envelope 폭' }), 'mm') : null,
-      switchInput('optim_enabled', 'GT-OPTIM capacity factor', { on: true, off: false, hint: '비우면 1.1 적용' }),
-      G().optim_enabled === true ? field('Capacity factor', numInput('optim_factor_override', { placeholder: '1.1', label: 'Capacity factor' })) : null,
+      bubble ? null : switchInput('optim_enabled', 'GT-OPTIM capacity factor', { on: true, off: false, hint: '비우면 1.1 적용' }),
+      !bubble && G().optim_enabled === true ?field('Capacity factor', numInput('optim_factor_override', { placeholder: '1.1', label: 'Capacity factor' })) : null,
       el('div', { class: 'divider' }),
-      sieve ? null : field('두 번째 밸브', selectInput('valve2_type', catalog.valves, '두 번째 밸브 종류')),
-      sieve ? null : field('두 번째 밸브 비율', numInput('valve2_fraction', { scale: 100, label: '두 번째 밸브 비율 %' }), '%'),
+      sieve || bubble ? null : field('두 번째 밸브', selectInput('valve2_type', catalog.valves, '두 번째 밸브 종류')),
+      sieve || bubble ? null : field('두 번째 밸브 비율', numInput('valve2_fraction', { scale: 100, label: '두 번째 밸브 비율 %' }), '%'),
       field('ΔP factor', numInput('dp_factor', { label: 'Pressure drop factor', placeholder: '1' })),
       n >= 3 ? field('Off-center DC 위치', numInput('ocdc_override', { label: 'Off-center DC 위치', placeholder: '자동' }), LEN(),
         '탑 중심에서 DC 중심까지. 비우면 패스 길이가 같도록 자동 계산') : null,
@@ -311,13 +332,18 @@
     // 활성 영역 요약
     const t = c ? c.tray : {};
     const sieve = String(G().tray_type || '').toUpperCase() === 'SIEVE';
+    const bubble = isBubble();
+    const what = bubble ? ['캡 수', 'caps', '캡 밀도'] : sieve ? ['홀 수', 'holes', '홀 밀도'] : ['밸브 수', 'valves', '밸브 밀도'];
+    const lenOut = mmv => (mmv == null ? '–' : unitE() ? (mmv / 25.4).toFixed(3) : mmv.toFixed(1));
     const items = [
       ['활성 면적', showCalc(t.active_area, A), unitLabel(A)],
-      [sieve ? '홀 수' : '밸브 수', t.n_valves == null ? '–' : Math.round(t.n_valves).toLocaleString('en-US'), sieve ? 'holes' : 'valves'],
-      [sieve ? '홀 밀도' : '밸브 밀도', t.valve_density == null ? '–' : t.valve_density.toFixed(1), '#/m2'],
-      ['Net rise', sieve || t.net_rise == null ? '–' : t.net_rise.toFixed(2), 'mm'],
+      [what[0], t.n_valves == null ? '–' : Math.round(t.n_valves).toLocaleString('en-US'), what[1]],
+      [what[2], t.valve_density == null ? '–' : t.valve_density.toFixed(1), '#/m2'],
+      bubble ? ['캡 피치 (삼각)', lenOut(t.cap && t.cap.pitch_mm), LEN()]
+             : ['Net rise', sieve || t.net_rise == null ? '–' : t.net_rise.toFixed(2), 'mm'],
+      bubble ? ['Riser 높이', lenOut(t.cap && t.cap.riser_height_mm), LEN()] : null,
       ['Tower 단면적', showCalc(t.tower_area, A), unitLabel(A)],
-    ];
+    ].filter(Boolean);
     if (String(G().mcsd || '').toUpperCase() === 'YES' && t.mcsd_joint) items.push(['MCSD 접합', t.mcsd_joint, '']);
     $('#aa-calc').replaceChildren(...items.flatMap(([k, v, u]) => [el('dt', { text: k }), el('dd', {}, el('span', { class: 'num', text: v }), el('span', { class: 'unit', text: u }))]));
     renderStatus();

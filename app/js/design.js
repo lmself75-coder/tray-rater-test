@@ -11,7 +11,10 @@
 
   const OPT_KEY = 'trayRater.autodesign.v1';
   const DESIGN_FLOOD = 80, FLOOD = 85, BACKUP = 40, WEIR_LOAD = 89.4, FPL_MIN = 450;
-  const TRAY_TYPES = ['VALVE', 'SIEVE', 'GT-PURGE™', 'GT-OPTIM™'];
+  const TRAY_TYPES = ['VALVE', 'SIEVE', 'GT-PURGE™', 'GT-OPTIM™', 'BUBBLE CAP'];
+  let CAPS = [['BC-3"', '3" bubble cap'], ['BC-4"', '4" bubble cap (FRI standard)'], ['BC-6"', '6" bubble cap']];
+  const isBubble = () => opts.tray_type === 'BUBBLE CAP';
+  const isBubbleRes = () => ((result && result.basis) || {}).tray_type === 'BUBBLE CAP';
 
   const $ = (s, el = document) => el.querySelector(s);
   const el = (tag, attrs = {}, ...kids) => {
@@ -49,7 +52,8 @@
   function defaults() {
     const g = (design && design.geometry) || {};
     return { passes: [1, 2, 4], open_area: 'auto', dp_max: '', tray_type: g.tray_type || 'VALVE',
-             valve: g.valve1_type || 'mfix6', hole: g.sieve_hole_override ?? '' };
+             valve: String(g.valve1_type || '').startsWith('BC-') ? 'mfix6' : (g.valve1_type || 'mfix6'),
+             cap: String(g.valve1_type || '').startsWith('BC-') ? g.valve1_type : 'BC-4"', hole: g.sieve_hole_override ?? '' };
   }
   function saveOpts() {
     try { localStorage.setItem(OPT_KEY, JSON.stringify(opts)); } catch (e) { /* 무시 */ }
@@ -91,11 +95,19 @@
     document.querySelectorAll('#pass-pick button').forEach(b => {
       b.setAttribute('aria-pressed', String(opts.passes.includes(+b.dataset.pass)));
     });
-    const sieve = opts.tray_type === 'SIEVE';
+    const sieve = opts.tray_type === 'SIEVE', bubble = isBubble();
     $('#tray-type').value = opts.tray_type;
-    $('#valve-field').hidden = sieve;
+    $('#valve-field').hidden = sieve || bubble;
+    $('#cap-field').hidden = !bubble;
     $('#hole-field').hidden = !sieve;
+    $('#oa-seg').closest('.field').hidden = bubble;
+    $('#rule-oa').hidden = bubble;
+    $('#rule-bc').hidden = !bubble;
+    $('#dp-hint').textContent = bubble
+      ? '모든 케이스(부하 105 %)의 트레이 1단 총 압력강하 한계. 넘으면 exit weir를 50 mm에서 25 mm까지 낮춥니다'
+      : '모든 케이스(부하 105 %)의 트레이 1단 총 압력강하 한계. 넘으면 개구율을 14 %까지 올립니다';
     if ($('#valve-type').options.length) $('#valve-type').value = opts.valve;
+    if ($('#cap-type').options.length) $('#cap-type').value = opts.cap || 'BC-4"';
     $('#hole-dia').value = opts.hole;
     if (document.activeElement !== $('#dp-max')) $('#dp-max').value = opts.dp_max;
     const oa = +g.open_area;
@@ -122,14 +134,17 @@
   }));
 
   function fillSelect(sel, items) {
-    sel.replaceChildren(...items.map(v => el('option', { value: v, text: v })));
+    sel.replaceChildren(...items.map(v => (Array.isArray(v) ? el('option', { value: v[0], text: v[1] }) : el('option', { value: v, text: v }))));
   }
   fillSelect($('#tray-type'), TRAY_TYPES);
+  fillSelect($('#cap-type'), CAPS);
+  $('#cap-type').addEventListener('change', e => { opts.cap = e.target.value; saveOpts(); });
   $('#tray-type').addEventListener('change', e => { opts.tray_type = e.target.value; saveOpts(); renderSetup(); });
   $('#valve-type').addEventListener('change', e => { opts.valve = e.target.value; saveOpts(); });
   $('#hole-dia').addEventListener('change', e => { opts.hole = e.target.value; saveOpts(); });
   $('#dp-max').addEventListener('input', e => { opts.dp_max = e.target.value; saveOpts(); });
   fetch('/api/catalog').then(r => r.json()).then(cat => {
+    if (Array.isArray(cat.caps) && cat.caps.length) { CAPS = cat.caps.map(c => [c.id, c.label]); fillSelect($('#cap-type'), CAPS); }
     const valves = cat.valves || [];
     if (opts.valve && !valves.includes(opts.valve)) valves.unshift(opts.valve);
     fillSelect($('#valve-type'), valves);
@@ -145,6 +160,9 @@
     if (opts.tray_type === 'SIEVE') {
       const h = parseFloat(opts.hole);
       g.sieve_hole_override = Number.isFinite(h) && h > 0 ? h : null;
+    } else if (opts.tray_type === 'BUBBLE CAP') {
+      g.valve1_type = opts.cap || 'BC-4"';
+      if (!g.valve2_type || String(g.valve2_type).startsWith('BC-')) g.valve2_type = 'mfix6';
     } else {
       g.valve1_type = opts.valve;
       if (!g.valve2_type || !(+g.valve2_fraction > 0)) g.valve2_type = opts.valve;
@@ -239,6 +257,11 @@
           icon(over ? 'triangle-alert' : 'circle-check'), `${over ? '초과' : '이내'} · ${limit}${unit}`) : null));
   }
 
+  function capLabel() {
+    const id = (result && result.basis && result.basis.cap) || opts.cap;
+    return (CAPS.find(c => c[0] === id) || [id, id])[1];
+  }
+
   function renderHero(c) {
     const m = c.metrics, g = c.geometry;
     const dims = [
@@ -247,7 +270,8 @@
       c.n_pass >= 2 ? ['Center DC 폭', `${mm(g.center_dc)} mm`] : null,
       c.n_pass === 4 ? ['Off-center DC 폭', `${mm(g.offcenter_dc)} mm`] : null,
       ['Weir 높이', `${mm(g.weir_height)} mm`], ['DC clearance', `${mm(g.dc_clearance)} mm`],
-      ['개구율', `${pct(g.open_area)} %`],
+      isBubbleRes() ? ['캡', `${capLabel()} · ${fmt(m.n_caps, 0)}개`] : ['개구율', `${pct(g.open_area)} %`],
+      isBubbleRes() ? ['트레이 활성도 (최소 유량)', `${pct(m.activity_min, 0)} %`] : null,
     ].filter(Boolean);
     return el('section', { class: 'card hero', 'aria-labelledby': 'hero-title' },
       el('div', { class: 'hero__main' },
@@ -266,7 +290,9 @@
         stat('최대 DC backup', m.backup * 100, '%', BACKUP, null),
         stat('최대 총 압력강하', m.dp_max_mmHg, ' mmHg', dpLimit(), dpLimit() ? null : '한계 입력 없음', 2),
         stat('최대 weir loading', m.weir_load_max, ' m3/h/m', WEIR_LOAD, null),
-        stat('최소 유량 weeping', isNum(m.weep_at_min) ? m.weep_at_min * 100 : null, '%', 25, '실제 유량 기준')));
+        isBubbleRes()
+          ? stat('설계 케이스 엔트레인먼트', m.entrain_max, ' kg/h/m2', 488, '100 lb/hr/ft2 = 488', 0)
+          : stat('최소 유량 weeping', isNum(m.weep_at_min) ? m.weep_at_min * 100 : null, '%', 25, '실제 유량 기준')));
   }
 
   function statusBadge(c) {
@@ -297,7 +323,7 @@
         cell(m.jet_design * 100, DESIGN_FLOOD), cell(m.dc_design * 100, DESIGN_FLOOD), cell(m.backup * 100, BACKUP),
         cell(m.dp_max_mmHg, dpLimit(), 2), cell(m.weir_load_max, WEIR_LOAD),
         el('td', { class: `num${m.fpl_min < FPL_MIN ? ' is-over' : ''}`, text: mm(m.fpl_min) }),
-        el('td', { class: 'num', text: pct(c.geometry.open_area) }),
+        el('td', { class: 'num', text: isBubbleRes() ? fmt(m.n_caps, 0) : pct(c.geometry.open_area) }),
         el('td', { class: 'num', text: String(soft) }),
       ] : []),
       el('td', {}, statusBadge(c)));
@@ -306,7 +332,8 @@
     return el('section', { class: 'card card--flush', 'aria-labelledby': 'cand-title' },
       el('div', { class: 'card__head card__head--pad' },
         el('h2', { class: 'card__title', id: 'cand-title' }, icon('list-checks'), '패스 후보 비교'),
-        el('span', { class: 'card__meta', text: `${(result.basis || {}).tray_type || ''} · 계산 ${result.evaluations}회 · ${fmt(result.elapsed_s, 1)} 초 · 개구율 ${result.open_area === 'auto' ? '자동' : '입력값'}` })),
+        el('span', { class: 'card__meta', text: `${(result.basis || {}).tray_type || ''} · 계산 ${result.evaluations}회 · ${fmt(result.elapsed_s, 1)} 초 · `
+          + (isBubbleRes() ? capLabel() : `개구율 ${result.open_area === 'auto' ? '자동' : '입력값'}`) })),
       el('p', { class: 'cand-hint', text: '패스 수마다 기준을 모두 만족하는 가장 작은 지름입니다. 행을 고르면 아래에 기준 판정이 나옵니다. 굵은 주황 값은 SOFT 기준 초과입니다.' }),
       el('div', { class: 'table-wrap' },
         el('table', { class: 'report-table cand-table' },
@@ -315,7 +342,7 @@
             el('th', { scope: 'col', text: 'Jet flood %' }), el('th', { scope: 'col', text: 'DC flood %' }),
             el('th', { scope: 'col', text: 'DC backup %' }), el('th', { scope: 'col', text: 'ΔP mmHg' }),
             el('th', { scope: 'col', text: 'Weir load m3/h/m' }),
-            el('th', { scope: 'col', text: 'Flow path mm' }), el('th', { scope: 'col', text: '개구율 %' }),
+            el('th', { scope: 'col', text: 'Flow path mm' }), el('th', { scope: 'col', text: isBubbleRes() ? '캡 수' : '개구율 %' }),
             el('th', { scope: 'col', text: '경고' }), el('th', { scope: 'col', text: '판정' }))),
           el('tbody', {}, rows))),
       el('p', { class: 'cand-foot', text: `값은 설계 여유를 반영한 부하(${fmt((result.basis || {}).margin_pct ?? 105, 0)} %) 기준. Jet·DC flood는 설계 케이스 값. `
